@@ -21,13 +21,18 @@ build/tessel2.box: build/tessel2.ova
 build:
 	mkdir -p build
 
-download: 
+build/artifact.tar.gz: build
 	# Just an example
-	rm artifact || true
 	cd build; axel -a https://technical-tusk.storage.googleapis.com/16f7830635d2f9d3aa1f6b613243799a910d9efe.tar.gz
-	cd build; tar -xjvf 16f7830635d2f9d3aa1f6b613243799a910d9efe.tar.gz
+	cd build; mv 16f7830635d2f9d3aa1f6b613243799a910d9efe.tar.gz artifact.tar.gz
+
+download: build/artifact.tar.gz
+	cd build; tar -xjvf artifact.tar.gz
 
 run:
 	# Just an example
-	vagrant box remove ./tessel2.box -f
+	vagrant box remove ./build/tessel2.box -f || true
 	rm -rf /Users/tim/VirtualBox\ VMs/tessel* || true
+
+	TESSEL2_BOX=./build/tessel2.box vagrant up
+	TESSEL2_BOX=./build/tessel2.box vagrant ssh
