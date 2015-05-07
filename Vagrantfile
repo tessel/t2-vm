@@ -17,15 +17,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.customize ['modifyvm', :id, '--usb', 'on']
     vb.customize ['usbfilter', 'add', '0', '--target', :id, '--name', 'Arduino', '--vendorid', '0x2341', '--productid', '0x0043']
 
+    keypath = File.expand_path('~/.tessel/id_rsa.pub')
+    idpath = '.vagrant/machines/default/virtualbox/id'
+
     # Switch to bridged network after provision
-    created = File.exist?('.vagrant/machines/default/virtualbox/id')
+    created = File.exist?(idpath)
     if not created then
-      pubkey = File.read('/Users/tim/.tessel/id_rsa.pub')
+      pubkey = File.read(keypath)
 
       override.vm.provision "shell", inline: "echo %s >> /etc/dropbear/authorized_keys; echo Hostname: $HOSTNAME; poweroff; sleep 10000000" % Shellwords.escape(pubkey)
 
       override.trigger.after [:up, :provision] do
-        id = run "cat .vagrant/machines/default/virtualbox/id"
+        id = File.read(idpath)
 
         run "vboxmanage modifyvm " + id + " --nic1 bridged --bridgeadapter1 \"en0: Wi-Fi (AirPort)\""
         sleep 1
