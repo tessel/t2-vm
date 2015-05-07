@@ -16,8 +16,9 @@ Then to boot the VM:
 
 ```
 vagrant up
-vagrant ssh
 ```
+
+The hostname of your new Tessel should be listed in green in the output. This can be used in `t2 run <script.js> --name <hostname>` to push and run code on the VM.
 
 TODO: how to use binary builds! For some code to play with in the VM, clone https://github.com/tcr/stillframe, explode the archives, and load it into the VM. The run it from shell using `node` as usual.
 
