@@ -4,14 +4,22 @@ This project uses a Tessel 2 build and packer to create a VM. Issues with Tessel
 
 ## Running a Tessel 2 VM
 
-Tessel 2 VMs are published to the Vagrant registry. To quickly get started, use the Vagrantfile included in this repo. (If you want to use a local copy, change the line to `config.vm.box = "./build/tessel2.box"`)
+Tessel 2 VMs are published to the Vagrant registry. To quickly get started, copy the Vagrantfile included in this repo to a new directory.
+
+First install the "triggers" plugin for Vagrant:
+
+```
+vagrant plugin install vagrant-triggers
+```
+
+Then to boot the VM:
 
 ```
 vagrant up
 vagrant ssh
 ```
 
-TODO: how to use the command line with it! For some code to play with in the VM, clone https://github.com/tcr/stillframe, explode the archives, and load it into the VM. The run it from shell using `node` as usual.
+TODO: how to use binary builds! For some code to play with in the VM, clone https://github.com/tcr/stillframe, explode the archives, and load it into the VM. The run it from shell using `node` as usual.
 
 ## Building a Vagrant box from scratch
 
