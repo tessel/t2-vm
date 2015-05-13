@@ -48,37 +48,49 @@ new Promise(function (resolve, reject) {
 .then(function (bridge) {
   console.error('Downloading VM...');
 
-  var multimeter = require('multimeter');
-  var multi = multimeter(process);
+  var el = setInterval(function () {
+    process.stderr.write('.');
+  }, 500);
 
-  // Note that the options argument is optional 
-  multi.drop(function (bar) {
-    bar.percent(0);
-    progress(request(etc.VM_URL), {
-        throttle: 100,  // Throttle the progress event to 2000ms, defaults to 1000ms 
-        delay: 100      // Only start to emit after 1000ms delay, defaults to 10000ms 
-    })
-    .on('progress', function (state) {
-        // console.log('total size in bytes', state.total);
-        // console.log('received size in bytes', state.received);
-        // console.log('percent', state.percent);
-        bar.percent(state.percent);
-    })
-    .on('error', function (err) {
-        // Do something with err 
-    })
-    .pipe(fs.createWriteStream(etc.PATH_VM_VDI))
-    .on('error', function (err) {
-        // Do something with err 
-    })
-    .on('close', function (err) {
-        // Saved to doogle.png! 
-        bar.percent(100);
-        multi.charm.end();
-        console.error('');
-        next();
-    })
-  });
+  request(etc.VM_URL)
+  .pipe(fs.createWriteStream(etc.PATH_VM_VDI))
+  .on('close', function (err) {
+    clearInterval(el);
+    console.error(' done.');
+    next();
+  })
+
+  // var multimeter = require('multimeter');
+  // var multi = multimeter(process);
+
+  // // Note that the options argument is optional 
+  // multi.drop(function (bar) {
+  //   bar.percent(0);
+  //   progress(request(etc.VM_URL), {
+  //       throttle: 100,  // Throttle the progress event to 2000ms, defaults to 1000ms 
+  //       delay: 100      // Only start to emit after 1000ms delay, defaults to 10000ms 
+  //   })
+  //   .on('progress', function (state) {
+  //       // console.log('total size in bytes', state.total);
+  //       // console.log('received size in bytes', state.received);
+  //       // console.log('percent', state.percent);
+  //       bar.percent(state.percent);
+  //   })
+  //   .on('error', function (err) {
+  //       // Do something with err 
+  //   })
+  //   .pipe(fs.createWriteStream(etc.PATH_VM_VDI))
+  //   .on('error', function (err) {
+  //       // Do something with err 
+  //   })
+  //   .on('close', function (err) {
+  //       // Saved to doogle.png! 
+  //       bar.percent(100);
+  //       multi.charm.end();
+  //       console.error('');
+  //       next();
+  //   })
+  // });
 
   function next () {
     Promise.try(function () {
