@@ -8,6 +8,21 @@ var net = require('net')
   , progress = require('request-progress')
   , etc = require('./etc')
 
+var audiocontroller = 'null';
+switch (process.platform) {
+  case 'darwin':
+    audiocontroller = 'coreaudio';
+    break;
+  case 'freebsd':
+  case 'linux':
+  case 'sunos':
+    audiocontroller = 'alsa';
+    break;
+  case 'win32':
+    audiocontroller = 'dsound';
+    break;
+}
+
 try {
   var publickey = fs.readFileSync(etc.PATH_KEY, 'utf-8');
 } catch (err) {
@@ -110,7 +125,7 @@ new Promise(function (resolve, reject) {
       return etc.exec('VBoxManage', ['storageattach', etc.VM_NAME, '--storagectl', 'IDE Controller', '--port', '0', '--device', '0', '--type', 'hdd', '--medium', etc.PATH_VM_VDI])
     })
     .then(function () {
-      return etc.exec('VBoxManage', ['modifyvm', etc.VM_NAME, '--audiocontroller', 'ac97', '--audio', 'coreaudio', '--nic1', 'nat', '--nic2', 'bridged', '--bridgeadapter2', bridge, '--usb', 'on'])
+      return etc.exec('VBoxManage', ['modifyvm', etc.VM_NAME, '--audiocontroller', 'ac97', '--audio', audiocontroller, '--nic1', 'nat', '--nic2', 'bridged', '--bridgeadapter2', bridge, '--usb', 'on'])
     })
     .then(function () {
       return etc.exec('VBoxManage', ['usbfilter', 'add', '0', '--target', etc.VM_NAME, '--name', 'Arduino', '--vendorid', '0x2341', '--productid', '0x0043'])
