@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 var net = require('net')
   , through = require('through')
   , spawn = require('child_process').spawn
@@ -10,7 +8,13 @@ var net = require('net')
   , progress = require('request-progress')
   , etc = require('./etc')
 
-var publickey = fs.readFileSync(etc.PATH_KEY, 'utf-8');
+try {
+  var publickey = fs.readFileSync(etc.PATH_KEY, 'utf-8');
+} catch (err) {
+  console.error('ERR No Tessel public key found.');
+  console.error('ERR Please install the t2-cli and run `t2 key generate` first.');
+  process.exit(1);
+}
 
 var spawn = require('child_process').spawn
   , concat = require('concat-stream')

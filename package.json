@@ -4,9 +4,7 @@
   "description": "Controls a Tessel 2 VM for local testing.",
   "main": "run.js",
   "bin": {
-    "t2-vm-create": "create.js",
-    "t2-vm-run": "run.js",
-    "t2-vm-destroy": "destroy.js"
+    "t2-vm": "index.js"
   },
   "dependencies": {
     "bluebird": "^2.9.25",
@@ -15,6 +13,7 @@
     "inquirer": "^0.8.4",
     "mdns-js": "^0.3.1",
     "multimeter": "^0.1.1",
+    "nomnom": "^1.8.1",
     "request": "^2.55.0",
     "request-progress": "^0.3.1",
     "shell-escape": "^0.2.0",
