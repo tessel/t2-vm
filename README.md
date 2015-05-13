@@ -1,38 +1,34 @@
-# tessel 2 vm generation
+# Tessel 2 VM Tool
 
-This project uses a Tessel 2 build and packer to create a VM. Issues with Tessel 2 builds can be filed on this repo.
+Command line tool to run a Tessel 2 VM for local testing.
+
+## Installation
+
+You will require Virtualbox.
+
+```
+npm install -g git+https://github.com/tessel/t2-vm.git
+```
 
 ## Running a Tessel 2 VM
 
-Tessel 2 VMs are published to the Vagrant registry. To quickly get started, copy the Vagrantfile included in this repo to a new directory.
-
-First install the "triggers" plugin for Vagrant:
+Make sure you have the [t2-cli](https://github.com/tessel/t2-cli) installed to generate your local key.
 
 ```
-vagrant plugin install vagrant-triggers
+t2 key generate
+t2-vm create
+t2-vm run
 ```
 
-Then to boot the VM:
+The resulting hostname can be used to push code to the local VM:
 
 ```
-vagrant up
+t2 run index.js --name Tessel-XXXXXXXXXX
 ```
 
-The hostname of your new Tessel should be listed in green in the output. This can be used in `t2 run <script.js> --name <hostname>` to push and run code on the VM.
+![Example usage](https://cloud.githubusercontent.com/assets/80639/7619962/32ffa39c-f971-11e4-919a-8b64057a450c.png)
 
 TODO: how to use binary builds! For some code to play with in the VM, clone https://github.com/tcr/stillframe, explode the archives, and load it into the VM. The run it from shell using `node` as usual.
-
-## Building a Vagrant box from scratch
-
-To test:
-
-```
-make clean
-make download
-make all
-```
-
-And you'll have a box at `build/tessel2.box`.
 
 ## License
 
