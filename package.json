@@ -1,7 +1,7 @@
 {
   "name": "t2-vm",
   "version": "1.0.0",
-  "description": "Controls a Tessel 2 VM for local testing.",
+  "description": "Command line tool to run a Tessel 2 VM for local testing.",
   "main": "run.js",
   "bin": {
     "t2-vm": "index.js"
