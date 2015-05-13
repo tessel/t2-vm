@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var spawn = require('child_process').spawn
   , etc = require('./etc')
   , fs = require('fs')

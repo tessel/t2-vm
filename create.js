@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var net = require('net')
   , through = require('through')
   , spawn = require('child_process').spawn

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var spawn = require('child_process').spawn
   , mdns = require('mdns-js')
   , etc = require('./etc')

@@ -2,3 +2,4 @@ node_modules
 .vagrant 
 build
 artifact.tar.gz
+*.log

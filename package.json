@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Controls a Tessel 2 VM for local testing.",
   "main": "run.js",
+  "bin": {
+    "t2-vm-create": "create.js",
+    "t2-vm-run": "run.js",
+    "t2-vm-destroy": "destroy.js"
+  },
   "dependencies": {
     "bluebird": "^2.9.25",
     "concat-stream": "^1.4.8",
