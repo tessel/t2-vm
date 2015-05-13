@@ -24,8 +24,19 @@ browser.on('update', function (data) {
   if (!isonline && data.host == hostname + '.local') {
     console.error('INFO VM is now online.');
     console.log(hostname);
+    isonline = true;
   }
 });
+
+setTimeout(function () {
+  if (!isonline) {
+    console.error('ERROR The VM failed to connect to the network.')
+    console.error('ERROR Please re-run this command and hope for the best.')
+    console.error('ERROR Ensure your Wifi policy allows connections to other')
+    console.error('ERROR devices on the network.')
+    process.exit(1);
+  }
+}, 60*1000)
 
 process.on('uncaughtException', function () {
   // Swallow this, it may be random encoding errors in mdns
@@ -44,5 +55,5 @@ browser.once('ready', function(){
   }
 });
 
-console.log('INFO Booting VM...');
+console.log('INFO Booting VM (may take up to a minute)...');
 var p = etc.startvm(etc.VM_NAME);
