@@ -1,0 +1,33 @@
+{
+  "name": "t2-vm",
+  "version": "1.0.0",
+  "description": "Controls a Tessel 2 VM for local testing.",
+  "main": "run.js",
+  "dependencies": {
+    "bluebird": "^2.9.25",
+    "concat-stream": "^1.4.8",
+    "expand-tilde": "^1.2.0",
+    "inquirer": "^0.8.4",
+    "mdns-js": "^0.3.1",
+    "multimeter": "^0.1.1",
+    "request": "^2.55.0",
+    "request-progress": "^0.3.1",
+    "shell-escape": "^0.2.0",
+    "through": "^2.3.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tessel/t2-vm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tessel/t2-vm/issues"
+  },
+  "homepage": "https://github.com/tessel/t2-vm"
+}
