@@ -13,7 +13,9 @@ Promise.try(function () {
   console.error('Deleting...');
 })
 .then(function () {
-  return etc.exec('VBoxManage', ['unregistervm', etc.VM_NAME, '--delete'])
+  return etc.exec('VBoxManage', ['unregistervm', etc.VM_NAME, '--delete'], {
+    quiet: true
+  })
 })
 .then(function () {
   console.error('Existing VM deleted.');

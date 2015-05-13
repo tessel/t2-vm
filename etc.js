@@ -30,11 +30,14 @@ function chunks (count) {
 }
 
 function exec (p, args, opts) {
+  opts = opts || {};
   return new Promise(function (resolve, reject) {
     // console.log('exec:', p, args);
     var proc = spawn(p, args, opts);
     // proc.stdout.pipe(process.stdout);
-    // proc.stderr.pipe(process.stderr);
+    if (!opts.quiet) {
+      proc.stderr.pipe(process.stderr);
+    } 
     proc.on('exit', function (code) {
       code ? reject(code) : resolve();
     })
