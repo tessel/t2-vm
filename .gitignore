@@ -1,4 +1,5 @@
 node_modules
+tests
 .vagrant 
 build
 artifact.tar.gz
