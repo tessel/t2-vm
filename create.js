@@ -5,8 +5,41 @@ var net = require('net')
   , shellescape = require('shell-escape')
   , fs = require('fs')
   , request = require('request')
+  , which = require('which')
   , progress = require('request-progress')
   , etc = require('./etc')
+  , shell  = require('./shell')
+  , Remote = require('./remote-exec')
+  , isWin = /^win/.test(process.platform);
+
+// A hacky race condition preventer
+// If you execute a bunch of commands to setup your VBox
+// and immediately call a shutdown, there is a good chance those commands didn't execute
+// TODO: accept a second argument for a once on an instance of the stdout
+
+
+
+// throw error is a necessary executable isn't in our path
+insurePath = function(cmd){
+  try{
+    which.sync(cmd);
+  } catch (err) {
+    e = []
+      .concat("executables for: ")
+      .concat(cmd)
+      .concat(" was not found in your ")
+      .concat(isWin? "%PATH%" : "$PATH")
+      .join('');
+    throw new Error(e);
+  }
+}
+
+cmds = [
+  'vboxheadless',
+  'VBoxManage'
+].forEach(insurePath);
+
+
 
 var audiocontroller = 'null';
 switch (process.platform) {
@@ -65,7 +98,7 @@ new Promise(function (resolve, reject) {
   })
 })
 .then(function (bridge) {
-  console.error('Downloading VM...');
+  shell.info('Downloading VM...');
 
   var el = setInterval(function () {
     process.stderr.write('.');
@@ -75,7 +108,7 @@ new Promise(function (resolve, reject) {
   .pipe(fs.createWriteStream(etc.PATH_VM_VDI))
   .on('close', function (err) {
     clearInterval(el);
-    console.error(' done.');
+    shell.success(' downloaded ...');
     next();
   })
 
@@ -113,7 +146,7 @@ new Promise(function (resolve, reject) {
 
   function next () {
     Promise.try(function () {
-      console.error('Creating VM...');
+      shell.info('Creating VM...');
     })
     .then(function () {
       return etc.exec('VBoxManage', ['createvm', '--name', etc.VM_NAME, '--ostype', 'Linux', '--register'])
@@ -131,56 +164,105 @@ new Promise(function (resolve, reject) {
       return etc.exec('VBoxManage', ['usbfilter', 'add', '0', '--target', etc.VM_NAME, '--name', 'Arduino', '--vendorid', '0x2341', '--productid', '0x0043'])
     })
     .then(function () {
+      shell.info("Attaching to serial port: "+etc.PATH_VM_PORT);
       return etc.exec('VBoxManage', ['modifyvm', etc.VM_NAME, '--uart1', '0x3F8', '4', '--uartmode1', 'server', etc.PATH_VM_PORT])
     })
     .then(function () {
       var p = etc.startvm(etc.VM_NAME);
 
       Promise.resolve()
-      .delay(3000)
-      .then(function () {
-        console.error('Configuring VM...');
+      .delay(
+        // unlikely a VM starts in 3 seconds
+        // More time, less hang
+        10*1000
+        //3000
+      ).then(function () {
+        shell.info('Configuring VM...');
 
         var s = net.createConnection({
-          path: etc.PATH_VM_PORT,
+          path: etc.PATH_VM_PORT
         }, function () {
-          // process.stdin.pipe(s).pipe(process.stdout);
-          // s.pipe(require('fs').createWriteStream('ugh.txt'));
-          // return;
+          
+          // This throws from stderr on shutdown, never allowing you to record the VM name
+          s.on('error', function(err){
+            // Silence is golden
+          });
 
           p.on('exit', function () {
             s.end();
           })
-          
 
-          var id = setInterval(function () {
-            s.write('\n');
-          }, 100);
+          shell.info('Opened serial connection to VirtualBox...');
 
-          var chunker = etc.chunks(128);
-          s.pipe(chunker)
-          .on('data', function (data) {
-            data = data.toString();
-            var r = /^root@(Tessel-[0-9A-F]+):/m;
-            if (data.match(r)) {
-              // Shut it down
-              var hostname = data.match(r)[1];
-              clearInterval(id);
-              s.unpipe(chunker);
+          var vm = Remote.bind(s);
+          var r  = /^root@(Tessel-[0-9A-F]+):/m;
+          var hostname = null;
 
-              p.on('exit', function () {
-                console.log('VM ready. Run `t2-vm run`');
-                console.log(hostname);
-                fs.writeFileSync(etc.PATH_VM_NAME, hostname);
-              })
+          // Insures that we have a command prompt before we start issuing commands to the tessel
+          function poll_for_id (resolve) {
+            shell.info('scanning for hostname...');
+            n = 0
+            var action = function(){
 
-              // Write our terminating commands
-              s.write('sed -ie \'20,22c\\\n     option input ACCEPT\\\n     option output ACCEPT\\\n     option forward ACCEPT\' /etc/config/firewall\n');
-              s.write(shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys\n')
-              s.write('\npoweroff\n')
+              s.once("data", function(data){
+               
+                result = data.toString();
+               
+                if ( match = result.match(r) ) {
+                    id = match[1];
+                    shell.info("id of "+id+" found");
+                    resolve(id);
+                  } else {
+                    n++
+                    if (n > 400){
+                      shell.warn('This seems to be taking way too long...')
+                    }
+                    setTimeout(action, 100);
+                  }
+              });
+
+              s.write('\n')
             }
+
+            setTimeout(action, 0);
+            
+          }
+
+          poll_for_id(function(id){
+            var hostname = id;
+
+            p.on('exit', function () {
+              console.log('VM ready. Run `t2-vm run`');
+              console.log("Found Tessel: ", hostname);
+              fs.writeFileSync(etc.PATH_VM_NAME, hostname);
+            })
+
+            shell.info('configuring VM root...')
+            var firewall = ["sed -ie '20,22c",
+                "   option input ACCEPT",
+                "   option output ACCEPT",
+                "   option forward ACCEPT'",
+                "-f /etc/config/firewall"
+              ].join('\\\n')
+
+
+            vm
+              .run(firewall)
+              .then(function(err, result){
+                shell.info('Configured firewall...');
+                shell.debug(result.join('')); 
+              })
+              .run(shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys')
+              .then(function(err, result){
+                shell.info('Configured public key...')
+                shell.debug(result.join(''));
+              })
+              .run('poweroff')
+              .exec();
+
           });
-        })
+         
+        });
       });
     });
   }
