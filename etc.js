@@ -55,10 +55,10 @@ function startvm (name) {
     spawn('sh', ['vboxheadless', '-s', name]);
 }
 
-exports.VM_NAME = 'tessel2';
-exports.PATH_KEY = expandTilde('~/.tessel/id_rsa.pub');
+exports.VM_NAME      = 'tessel2';
+exports.PATH_KEY     = expandTilde('~/.tessel/id_rsa.pub');
 exports.PATH_VM_NAME = expandTilde('~/.tessel/vm_name');
-exports.PATH_VM_VDI = expandTilde('~/.tessel/vm.vdi');
+exports.PATH_VM_VDI  = expandTilde('~/.tessel/vm.vdi');
 
 // Windows serial ports use predefined pipe sockets
 // Google virtualbox serial ports windows for a lot more info on this

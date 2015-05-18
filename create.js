@@ -237,8 +237,10 @@ new Promise(function (resolve, reject) {
               fs.writeFileSync(etc.PATH_VM_NAME, hostname);
             })
 
-            shell.info('configuring VM root...')
-            var firewall = ["sed -ie '20,22c",
+            shell.info('configuring VM root...');
+
+            var firewall = [
+                "sed -ie '20,22c",
                 "   option input ACCEPT",
                 "   option output ACCEPT",
                 "   option forward ACCEPT'",
@@ -248,15 +250,12 @@ new Promise(function (resolve, reject) {
 
             vm
               .run(firewall)
-              .then(function(err, result){
-                shell.info('Configured firewall...');
-                shell.debug(result.join('')); 
-              })
               .run(shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys')
+              // enable mdns on t2-vm run
               .then(function(err, result){
-                shell.info('Configured public key...')
-                shell.debug(result.join(''));
+                shell.debug(result.join(''))
               })
+              .run('/etc/init.d/tessel-mdns enable')
               .run('poweroff')
               .exec();
 

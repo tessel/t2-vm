@@ -22,7 +22,7 @@ var s = net.createConnection({
     vm = Remote.bind(s);
     
     vm
-      .run('echo test', function(err, result){
+      .run('cat /etc/mDNSResponder.conf', function(err, result){
         debug(result);
       })
       .exec(function(){
