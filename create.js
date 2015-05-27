@@ -12,12 +12,6 @@ var net = require('net')
   , Remote = require('./remote-exec')
   , isWin = /^win/.test(process.platform);
 
-// A hacky race condition preventer
-// If you execute a bunch of commands to setup your VBox
-// and immediately call a shutdown, there is a good chance those commands didn't execute
-// TODO: accept a second argument for a once on an instance of the stdout
-
-
 
 // throw error is a necessary executable isn't in our path
 insurePath = function(cmd){
