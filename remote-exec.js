@@ -1,10 +1,6 @@
 
-var etc = require('./etc')
-  , Capped_Collection = require('./capped-collection');
-
+var etc = require('./etc');
 var noop= function(){ };
-
-
 
 module.exports = function(){
   var instance     = {};

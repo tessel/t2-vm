@@ -235,7 +235,7 @@ new Promise(function (resolve, reject) {
               console.log('VM ready. Run `t2-vm run`');
               console.log("Found Tessel: ", hostname);
               fs.writeFileSync(etc.PATH_VM_NAME, hostname);
-            })
+            });
 
             shell.info('configuring VM root...');
 
@@ -245,16 +245,11 @@ new Promise(function (resolve, reject) {
                 "   option output ACCEPT",
                 "   option forward ACCEPT'",
                 "-f /etc/config/firewall"
-              ].join('\\\n')
-
+              ].join('\\\n');
 
             vm
               .run(firewall)
               .run(shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys')
-              // enable mdns on t2-vm run
-              .then(function(err, result){
-                shell.debug(result.join(''))
-              })
               .run('/etc/init.d/tessel-mdns enable')
               .run('poweroff')
               .exec();
