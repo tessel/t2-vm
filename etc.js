@@ -3,9 +3,12 @@ var net = require('net')
   , spawn = require('child_process').spawn
   , Promise = require('bluebird')
   , expandTilde = require('expand-tilde')
+  , mdns = require('mdns-js')
   , fs = require('fs')
   , isWin = /^win/.test(process.platform);
 
+
+var etc = exports;
 
 function chunks (count) {
   var bufs = [], len = 0;
@@ -55,8 +58,51 @@ function startvm (name) {
     spawn('sh', ['vboxheadless', '-s', name]);
 }
 
-exports.VM_NAME      = 'tessel2';
-exports.PATH_KEY     = expandTilde('~/.tessel/id_rsa.pub');
+function seekDevice (hostname, next) {
+  // Ignore other mdns daemons running, like avahi or bonjour
+  mdns.excludeInterface('0.0.0.0');
+
+  // Create a Tessel browser
+  var browser = mdns.createBrowser('_tessel._tcp');
+
+  // When the browser finds a new device
+  var isonline = false;
+  browser.on('update', function (data) {
+    if (!isonline && data.host == hostname + '.local') {
+      process.removeListener('uncaughtException', swallow);
+      browser.stop();
+      setImmediate(function () {
+        next(null, data);
+      })
+    }
+  });
+
+  function swallow () {
+    // Swallow this, it may be random encoding errors in mdns
+    return;
+  }
+  process.on('uncaughtException', swallow)
+
+  // When the browser becomes ready
+  browser.once('ready', function(){
+    try {
+      // Start discovering Tessels
+      var onlinepoller = setInterval(function () {
+        if (isonline) {
+          clearInterval(onlinepoller);
+        } else {
+          browser.discover();
+        }
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+    }
+  });
+}
+
+exports.VM_NAME = 'tessel2';
+exports.PATH_PRIVATE_KEY = expandTilde('~/.tessel/id_rsa');
+exports.PATH_KEY = expandTilde('~/.tessel/id_rsa.pub');
 exports.PATH_VM_NAME = expandTilde('~/.tessel/vm_name');
 exports.PATH_VM_VDI  = expandTilde('~/.tessel/vm.vdi');
 
@@ -74,3 +120,4 @@ exports.VM_URL = "http://storage.googleapis.com/tessel-builds/ccc157a289db14791e
 exports.exec = exec;
 exports.chunks = chunks;
 exports.startvm = startvm;
+exports.seekDevice = seekDevice;
