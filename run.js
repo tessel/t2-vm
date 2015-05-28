@@ -23,6 +23,7 @@ browser.on('update', function (data) {
     console.error('INFO VM is now online.');
     console.log(hostname);
     isonline = true;
+    browser.stop();
   }
 });
 
@@ -45,8 +46,12 @@ process.on('uncaughtException', function () {
 browser.once('ready', function(){
   try {
     // Start discovering Tessels
-    setInterval(function () {
-      browser.discover();
+    var onlinepoller = setInterval(function () {
+      if (isonline) {
+        clearInterval(onlinepoller);
+      } else {
+        browser.discover();
+      }
     }, 2000);
   } catch (err) {
     console.log(err);
@@ -55,3 +60,6 @@ browser.once('ready', function(){
 
 console.log('INFO Booting VM (may take up to a minute)...');
 var p = etc.startvm(etc.VM_NAME);
+p.on('exit', function () {
+  console.log('INFO VM terminated.');
+})
