@@ -8,8 +8,7 @@ var net = require('net')
   , which = require('which')
   , progress = require('request-progress')
   , etc = require('./etc')
-  , shell  = require('./shell')
-  , Remote = require('./remote-exec')
+  , shell  = require('./logs')
   , isWin = /^win/.test(process.platform);
 
 
@@ -63,19 +62,37 @@ var spawn = require('child_process').spawn
   , Promise = require('bluebird')
   , inquirer = require("inquirer")
 
-new Promise(function (resolve, reject) {
-  var p = spawn('VBoxManage', ['list', 'bridgedifs'])
-  p.stdout.pipe(concat(function (data) {
-    var R = /^Name:\s*(.*?)$/mg;
-    var D = /^Name:\s*(.*?)$/m;
-    var names = data.toString().match(R).map(function (line) {
-      return line.match(D)[1];
-    })
-    resolve(names);
-  })) 
-  p.on('exit', function (code) {
-    code ? reject(code) : resolve();
+
+Promise.try(function () {
+  shell.info('Initializing VM...');
+  return etc.exec('VBoxManage', ['createvm', '--name', etc.VM_NAME, '--ostype', 'Linux', '--register'], {
+    quiet: true,
   })
+})
+.catch(function () {
+  shell.info('(Replacing previous VM...)');
+  return etc.exec('VBoxManage', ['unregistervm', etc.VM_NAME, '--delete'], {
+    quiet: false,
+  })
+  .then(function () {
+    return etc.exec('VBoxManage', ['createvm', '--name', etc.VM_NAME, '--ostype', 'Linux', '--register'])
+  });
+})
+.then(function () {
+  return new Promise(function (resolve, reject) {
+    var p = spawn('VBoxManage', ['list', 'bridgedifs'])
+    p.stdout.pipe(concat(function (data) {
+      var R = /^Name:\s*(.*?)$/mg;
+      var D = /^Name:\s*(.*?)$/m;
+      var names = data.toString().match(R).map(function (line) {
+        return line.match(D)[1];
+      })
+      resolve(names);
+    })) 
+    p.on('exit', function (code) {
+      code ? reject(code) : resolve();
+    })
+  });
 })
 .then(function (names) {
   return new Promise(function (resolve, reject) {
@@ -92,7 +109,7 @@ new Promise(function (resolve, reject) {
   })
 })
 .then(function (bridge) {
-  shell.info('Downloading VM...');
+  shell.info('Downloading image...');
 
   var el = setInterval(function () {
     process.stderr.write('.');
@@ -143,9 +160,6 @@ new Promise(function (resolve, reject) {
       shell.info('Creating VM...');
     })
     .then(function () {
-      return etc.exec('VBoxManage', ['createvm', '--name', etc.VM_NAME, '--ostype', 'Linux', '--register'])
-    })
-    .then(function () {
       return etc.exec('VBoxManage', ['storagectl', etc.VM_NAME, '--name', 'IDE Controller', '--add', 'ide'])
     })
     .then(function () {
@@ -166,10 +180,8 @@ new Promise(function (resolve, reject) {
 
       Promise.resolve()
       .delay(
-        // unlikely a VM starts in 3 seconds
-        // More time, less hang
+        // VM takes 10+ seconds to startup
         10*1000
-        //3000
       ).then(function () {
         shell.info('Configuring VM...');
 
@@ -187,69 +199,60 @@ new Promise(function (resolve, reject) {
           })
 
           shell.info('Opened serial connection to VirtualBox...');
+          shell.info('Awaiting hostname...');
 
-          var vm = Remote.bind(s);
           var r  = /^root@(Tessel-[0-9A-F]+):/m;
           var hostname = null;
 
-          // Insures that we have a command prompt before we start issuing commands to the tessel
-          function poll_for_id (resolve) {
-            shell.info('scanning for hostname...');
-            n = 0
-            var action = function(){
+          var pingid = setInterval(function () {
+            s.write('\n');
+          }, 100);
 
-              s.once("data", function(data){
-               
-                result = data.toString();
-               
-                if ( match = result.match(r) ) {
-                    id = match[1];
-                    shell.info("id of "+id+" found");
-                    resolve(id);
-                  } else {
-                    n++
-                    if (n > 400){
-                      shell.warn('This seems to be taking way too long...')
-                    }
-                    setTimeout(action, 100);
-                  }
-              });
+          var warnid = setTimeout(function () {
+            shell.warn('This seems to be taking way too long.')
+            shell.warn('Perhaps CTRL+C and try again.')
+          }, 60*1000);
 
-              s.write('\n')
+          var chunker = etc.chunks(128);
+          s.pipe(chunker)
+          .on('data', function listener (data) {
+            data = data.toString();
+            var r = /^root@(Tessel-[0-9A-F]+):/m;
+            if (data.match(r)) {
+              // Shut down listener.
+              var hostname = data.match(r)[1];
+              s.unpipe(chunker);
+              chunker.removeListener('data', listener);
+
+              clearInterval(pingid);
+              clearTimeout(warnid);
+
+              initialize(hostname);
             }
+          });
 
-            setTimeout(action, 0);
-            
-          }
-
-          poll_for_id(function(id){
-            var hostname = id;
-
+          function initialize (hostname) {
             p.on('exit', function () {
               console.log('VM ready. Run `t2-vm run`');
               console.log("Found Tessel: ", hostname);
               fs.writeFileSync(etc.PATH_VM_NAME, hostname);
             });
 
-            shell.info('configuring VM root...');
+            shell.info('Configuring VM settings...');
 
-            var firewall = [
+            s.write([
+              [
                 "sed -ie '20,22c",
                 "   option input ACCEPT",
                 "   option output ACCEPT",
-                "   option forward ACCEPT'",
-                "-f /etc/config/firewall"
-              ].join('\\\n');
-
-            vm
-              .run(firewall)
-              .run(shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys')
-              .run('/etc/init.d/tessel-mdns enable')
-              .run('poweroff')
-              .exec();
-
-          });
-         
+                "   option forward ACCEPT' /etc/config/firewall"
+              ].join('\\\n'),
+              shellescape(['echo', publickey]) + ' >> /etc/dropbear/authorized_keys',
+              '/etc/init.d/tessel-mdns enable',
+              'poweroff',
+              ''
+            ].join('\n'));
+          }
         });
       });
     });
