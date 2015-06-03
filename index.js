@@ -20,4 +20,10 @@ parser.command('destroy')
   })
   .help('destroys the vm')
 
+parser.command('shell')
+  .callback(function () {
+    require('./shell');
+  })
+  .help('launches a shell for the vm')
+
 parser.parse();

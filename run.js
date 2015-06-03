@@ -2,6 +2,7 @@ var spawn = require('child_process').spawn
   , mdns = require('mdns-js')
   , etc = require('./etc')
   , fs = require('fs')
+  , concat = require('concat-stream')
 
 try {
   var hostname = fs.readFileSync(etc.PATH_VM_NAME, 'utf-8');
@@ -9,23 +10,6 @@ try {
   console.error('No VM found. Please run `t2-vm create` first');
   process.exit(1);
 }
-
-// Ignore other mdns daemons running, like avahi or bonjour
-mdns.excludeInterface('0.0.0.0');
-
-// Create a Tessel browser
-var browser = mdns.createBrowser('_tessel._tcp');
-
-// When the browser finds a new device
-var isonline = false;
-browser.on('update', function (data) {
-  if (!isonline && data.host == hostname + '.local') {
-    console.error('INFO VM is now online.');
-    console.log(hostname);
-    isonline = true;
-    browser.stop();
-  }
-});
 
 setTimeout(function () {
   if (!isonline) {
@@ -37,29 +21,22 @@ setTimeout(function () {
   }
 }, 60*1000)
 
-process.on('uncaughtException', function () {
-  // Swallow this, it may be random encoding errors in mdns
-  return;
-})
-
-// When the browser becomes ready
-browser.once('ready', function(){
-  try {
-    // Start discovering Tessels
-    var onlinepoller = setInterval(function () {
-      if (isonline) {
-        clearInterval(onlinepoller);
-      } else {
-        browser.discover();
-      }
-    }, 2000);
-  } catch (err) {
-    console.log(err);
-  }
-});
-
 console.log('INFO Booting VM (may take up to a minute)...');
 var p = etc.startvm(etc.VM_NAME);
+p.stdout.pipe(concat(function (data) {
+  if (data.toString().match(/invalid machine name/i)) {
+    console.error('ERR  No VM exists. Run t2-vm create first.')
+    process.exit(1);
+  }
+}))
 p.on('exit', function () {
   console.log('INFO VM terminated.');
 })
+
+etc.seekDevice(hostname, function (err, data) {
+  console.error('INFO VM is now online.');
+  console.log(hostname);
+  console.log(data.addresses[0]);
+  isonline = true;
+})
+
