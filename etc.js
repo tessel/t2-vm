@@ -4,6 +4,8 @@ var net = require('net')
   , Promise = require('bluebird')
   , expandTilde = require('expand-tilde')
   , fs = require('fs')
+  , isWin = /^win/.test(process.platform);
+
 
 function chunks (count) {
   var bufs = [], len = 0;
@@ -44,15 +46,29 @@ function exec (p, args, opts) {
   });
 }
 
+// windows may or may not have vbox, and that depending on your flavor of Git, that shell may or may not have your Windows user %path% exported into it
+// it's much safer to just assume vbox is in the path from the create.js insurePath check on startup
 function startvm (name) {
-  return spawn('sh', ['vboxheadless', '-s', name]);
+  return isWin ?
+    spawn('vboxheadless', ['-s', name])
+  :
+    spawn('sh', ['vboxheadless', '-s', name]);
 }
 
-exports.VM_NAME = 'tessel2';
-exports.PATH_KEY = expandTilde('~/.tessel/id_rsa.pub');
+exports.VM_NAME      = 'tessel2';
+exports.PATH_KEY     = expandTilde('~/.tessel/id_rsa.pub');
 exports.PATH_VM_NAME = expandTilde('~/.tessel/vm_name');
-exports.PATH_VM_VDI = expandTilde('~/.tessel/vm.vdi');
-exports.PATH_VM_PORT = expandTilde('~/.tessel/vm.port');
+exports.PATH_VM_VDI  = expandTilde('~/.tessel/vm.vdi');
+
+// Windows serial ports use predefined pipe sockets
+// Google virtualbox serial ports windows for a lot more info on this
+exports.PATH_VM_PORT = exports.PATH_VM_PORT = function(){
+  return isWin ?
+    '\\\\.\\pipe\\COM1'
+  :
+    expandTilde('~/.tessel/vm.port');
+}();
+
 exports.VM_URL = "http://storage.googleapis.com/tessel-builds/ccc157a289db14791ee7250733a0b7b5fb9c06c8.vdi";
 
 exports.exec = exec;

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "bluebird": "^2.9.25",
+    "colors": "^1.1.0",
     "concat-stream": "^1.4.8",
     "expand-tilde": "^1.2.0",
     "inquirer": "^0.8.4",
@@ -17,7 +18,8 @@
     "request": "^2.55.0",
     "request-progress": "^0.3.1",
     "shell-escape": "^0.2.0",
-    "through": "^2.3.7"
+    "through": "^2.3.7",
+    "which": "^1.1.1"
   },
   "devDependencies": {},
   "scripts": {
