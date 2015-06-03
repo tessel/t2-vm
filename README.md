@@ -17,13 +17,13 @@ Make sure you have the [t2-cli](https://github.com/tessel/t2-cli) installed to g
 ```
 t2 key generate
 t2-vm create
-t2-vm run
+t2-vm launch
 ```
 
 The resulting hostname can be used to push code to the local VM:
 
 ```
-t2 run index.js --name Tessel-XXXXXXXXXX
+t2 launch index.js --name Tessel-XXXXXXXXXX
 ```
 
 ![Example usage](https://cloud.githubusercontent.com/assets/80639/7619962/32ffa39c-f971-11e4-919a-8b64057a450c.png)

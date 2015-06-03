@@ -233,7 +233,7 @@ Promise.try(function () {
 
           function initialize (hostname) {
             p.on('exit', function () {
-              console.log('VM ready. Run `t2-vm run`');
+              console.log('VM ready. Run `t2-vm launch`');
               console.log("Found Tessel: ", hostname);
               fs.writeFileSync(etc.PATH_VM_NAME, hostname);
             });

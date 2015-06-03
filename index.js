@@ -8,11 +8,17 @@ parser.command('create')
   })
   .help('creates the vm image')
 
-parser.command('run')
+parser.command('launch')
   .callback(function () {
     require('./run');
   })
   .help('launches the vm for testing')
+
+parser.command('run')
+  .callback(function () {
+    console.error('DEPRECATED: Use the command "t2-vm launch" instead.');
+    process.exit(255);
+  })
 
 parser.command('destroy')
   .callback(function () {
