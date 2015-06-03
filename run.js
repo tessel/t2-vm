@@ -2,6 +2,7 @@ var spawn = require('child_process').spawn
   , mdns = require('mdns-js')
   , etc = require('./etc')
   , fs = require('fs')
+  , concat = require('concat-stream')
 
 try {
   var hostname = fs.readFileSync(etc.PATH_VM_NAME, 'utf-8');
@@ -22,6 +23,12 @@ setTimeout(function () {
 
 console.log('INFO Booting VM (may take up to a minute)...');
 var p = etc.startvm(etc.VM_NAME);
+p.stdout.pipe(concat(function (data) {
+  if (data.toString().match(/invalid machine name/i)) {
+    console.error('ERR  No VM exists. Run t2-vm create first.')
+    process.exit(1);
+  }
+}))
 p.on('exit', function () {
   console.log('INFO VM terminated.');
 })
