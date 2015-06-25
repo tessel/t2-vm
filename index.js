@@ -3,9 +3,10 @@
 var parser = require("nomnom");
 
 parser.command('create')
-  .callback(function () {
-    require('./create');
+  .callback(function (opts) {
+    require('./create').create(opts);
   })
+  .option('image', {help: 'path to a VM image instead of downloading the default one'})
   .help('creates the vm image')
 
 parser.command('launch')
