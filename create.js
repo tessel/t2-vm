@@ -191,7 +191,13 @@ exports.create = function(opts) {
         return etc.exec('VBoxManage', ['storageattach', etc.VM_NAME, '--storagectl', 'IDE Controller', '--port', '0', '--device', '0', '--type', 'hdd', '--medium', etc.PATH_VM_VDI])
       })
       .then(function () {
-        return etc.exec('VBoxManage', ['modifyvm', etc.VM_NAME, '--memory', '64', '--audiocontroller', 'ac97', '--audio', audiocontroller, '--nic1', 'nat', '--nic2', 'bridged', '--bridgeadapter2', bridge, '--usb', 'on'])
+        var args = ['modifyvm', etc.VM_NAME, '--memory', '64', '--audiocontroller', 'ac97', '--audio', audiocontroller];
+        for(var i = 1; i < opts.nbNetInterfaces; i++) {
+          args.push('--nic' + i);
+          args.push(nat);
+        }
+        args.push('--nic'+opts.nbNetInterfaces, 'bridged', '--bridgeadapter'+opts.nbNetInterfaces, bridge, '--usb', 'on');
+        return etc.exec('VBoxManage', args)
       })
       .then(function () {
         return etc.exec('VBoxManage', ['usbfilter', 'add', '0', '--target', etc.VM_NAME, '--name', 'Arduino', '--vendorid', '0x2341', '--productid', '0x0043'])
