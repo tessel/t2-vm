@@ -194,7 +194,7 @@ exports.create = function(opts) {
         var args = ['modifyvm', etc.VM_NAME, '--memory', '64', '--audiocontroller', 'ac97', '--audio', audiocontroller];
         for(var i = 1; i < opts.nbNetInterfaces; i++) {
           args.push('--nic' + i);
-          args.push(nat);
+          args.push('nat');
         }
         args.push('--nic'+opts.nbNetInterfaces, 'bridged', '--bridgeadapter'+opts.nbNetInterfaces, bridge, '--usb', 'on');
         return etc.exec('VBoxManage', args)
