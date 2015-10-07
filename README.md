@@ -2,10 +2,10 @@
 
 Command line tool to run a Tessel 2 VM for local testing.
 
+## Prerequisites
+[VirtualBox and it's extension pack](https://www.virtualbox.org/wiki/Downloads)
+
 ## Installation
-
-You will require Virtualbox.
-
 ```
 npm install -g git+https://github.com/tessel/t2-vm.git
 ```
