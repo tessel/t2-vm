@@ -3,7 +3,7 @@
 Command line tool to run a Tessel 2 VM for local testing.
 
 ## Prerequisites
-[VirtualBox and it's extension pack](https://www.virtualbox.org/wiki/Downloads)
+[VirtualBox and its extension pack](https://www.virtualbox.org/wiki/Downloads)
 
 ## Installation
 ```
