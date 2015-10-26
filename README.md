@@ -23,7 +23,7 @@ t2-vm launch
 The resulting hostname can be used to push code to the local VM:
 
 ```
-t2 launch index.js --name Tessel-XXXXXXXXXX
+t2-vm launch index.js --name Tessel-XXXXXXXXXX
 ```
 
 ![Example usage](https://cloud.githubusercontent.com/assets/80639/7619962/32ffa39c-f971-11e4-919a-8b64057a450c.png)
