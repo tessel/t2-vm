@@ -42,7 +42,7 @@ function exec (p, args, opts) {
     // proc.stdout.pipe(process.stdout);
     if (!opts.quiet) {
       proc.stderr.pipe(process.stderr);
-    } 
+    }
     proc.on('exit', function (code) {
       code ? reject(code) : resolve();
     })
@@ -100,7 +100,7 @@ function seekDevice (hostname, next) {
   });
 }
 
-exports.VM_NAME = 'tessel2';
+exports.VM_NAME = 't2';
 exports.PATH_PRIVATE_KEY = expandTilde('~/.tessel/id_rsa');
 exports.PATH_KEY = expandTilde('~/.tessel/id_rsa.pub');
 exports.PATH_VM_NAME = expandTilde('~/.tessel/vm_name');
