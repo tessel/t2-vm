@@ -55,7 +55,7 @@ function startvm (name) {
   return isWin ?
     spawn('vboxheadless', ['-s', name])
   :
-    spawn('sh', ['vboxheadless', '-s', name]);
+    spawn('vboxheadless', ['-s', name]);
 }
 
 function seekDevice (hostname, next) {
