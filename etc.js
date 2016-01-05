@@ -52,10 +52,7 @@ function exec (p, args, opts) {
 // windows may or may not have vbox, and that depending on your flavor of Git, that shell may or may not have your Windows user %path% exported into it
 // it's much safer to just assume vbox is in the path from the create.js insurePath check on startup
 function startvm (name) {
-  return isWin ?
-    spawn('vboxheadless', ['-s', name])
-  :
-    spawn('vboxheadless', ['-s', name]);
+  return spawn('vboxheadless', ['-s', name]);
 }
 
 function seekDevice (hostname, next) {
