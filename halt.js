@@ -21,8 +21,8 @@ setTimeout(function () {
   }
 }, 60*1000)
 
-console.log('INFO Booting VM (may take up to a minute)...');
-var p = etc.startvm(etc.VM_NAME, module.parent.verbose);
+console.log('INFO Halting VM ...');
+var p = etc.stopvm(etc.VM_NAME);
 p.stdout.pipe(concat(function (data) {
   if (module.parent.verbose)
     console.log(data.toString());
@@ -40,7 +40,6 @@ p.on('exit', function () {
   process.exit();
 })
 
-console.log("Seeking the device ...");
 etc.seekDevice(hostname, function (err, data) {
   console.error('INFO VM is now online.');
   console.log(hostname);

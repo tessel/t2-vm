@@ -51,8 +51,13 @@ function exec (p, args, opts) {
 
 // windows may or may not have vbox, and that depending on your flavor of Git, that shell may or may not have your Windows user %path% exported into it
 // it's much safer to just assume vbox is in the path from the create.js insurePath check on startup
-function startvm (name) {
-  return spawn('vboxheadless', ['-s', name]);
+function startvm (name, verbose) {
+  verbose = typeof verbose !== 'undefined' ? verbose : false;
+  return spawn('vboxheadless', ['-s', name, '--vrde', verbose ? 'on': 'off']);
+}
+
+function stopvm (name) {
+  return spawn('vboxmanage', ['controlvm', name, 'poweroff']);
 }
 
 function seekDevice (hostname, next) {
@@ -117,4 +122,5 @@ exports.VM_URL = "http://storage.googleapis.com/tessel-builds/ccc157a289db14791e
 exports.exec = exec;
 exports.chunks = chunks;
 exports.startvm = startvm;
+exports.stopvm = stopvm;
 exports.seekDevice = seekDevice;
