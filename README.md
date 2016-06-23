@@ -30,6 +30,8 @@ t2-vm launch index.js --name Tessel-XXXXXXXXXX
 
 TODO: how to use binary builds! For some code to play with in the VM, clone https://github.com/tcr/stillframe, explode the archives, and load it into the VM. The run it from shell using `node` as usual.
 
-## License
+## Copyright and License
 
-MIT/ASL2
+Copyright 2016 Tessel
+
+Dual-licensed under the [Apache License, Version 2.0](./APACHE-LICENSE), and the [MIT License](./MIT-LICENSE).
