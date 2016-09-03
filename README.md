@@ -1,4 +1,5 @@
 # Tessel 2 VM Tool
+[![Code of Conduct](https://img.shields.io/badge/%E2%9D%A4-code%20of%20conduct-blue.svg?style=flat)](https://github.com/tessel/project/blob/master/CONDUCT.md)
 
 Command line tool to run a Tessel 2 VM for local testing.
 
