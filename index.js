@@ -3,8 +3,25 @@
 var parser = require("nomnom");
 
 parser.command('create')
-  .callback(function () {
-    require('./create');
+  .callback(function (opts) {
+    require('./create').create(opts);
+  })
+  .option('image', {
+    help: 'path to a VM image instead of downloading the default one',
+    metavar: 'FILE.vdi'
+  })
+  .option('nbNetInterfaces', {
+    abbr: 'n',
+    full: 'nb-network-interfaces',
+    help: 'set the number of network interfaces. Only the last one is bridged (2 by default)',
+    default: 2,
+    callback: function(nb) {
+      var pnb = parseInt(nb)
+      if ((nb != parseInt(nb)) || (pnb > 4) || (pnb < 1)) {
+         return "nb-network-interfaces must be an integer between 1 and 4";
+      }
+    },
+    transform: function(nb) { return parseInt(nb); }
   })
   .help('creates the vm image')
 
